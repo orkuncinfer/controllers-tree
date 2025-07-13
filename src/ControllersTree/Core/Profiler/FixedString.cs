@@ -1,58 +1,61 @@
 #if CONTROLLERS_PROFILER
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Playtika.Controllers
 {
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct ByteBlock16
+    {
+        public byte B0; public byte B1; public byte B2; public byte B3;
+        public byte B4; public byte B5; public byte B6; public byte B7;
+        public byte B8; public byte B9; public byte B10; public byte B11;
+        public byte B12; public byte B13; public byte B14; public byte B15;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct FixedString
     {
-        public unsafe fixed byte Data[128];
+        public ByteBlock16 Block0;
+        public ByteBlock16 Block1;
+        public ByteBlock16 Block2;
+        public ByteBlock16 Block3;
+        public ByteBlock16 Block4;
+        public ByteBlock16 Block5;
+        public ByteBlock16 Block6;
+        public ByteBlock16 Block7;
 
-        public override unsafe string ToString()
+        private Span<byte> AsSpan()
         {
-            fixed (byte* dataPtr = Data)
-            {
-                return GetStringFromFixedBytes(dataPtr);
-            }
+            return MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref Block0, 8));
         }
 
-        private unsafe void Set(string value)
+        public override string ToString()
         {
-            fixed (byte* dataPtr = Data)
+            var span = AsSpan();
+            var length = span.IndexOf((byte)0);
+            if (length < 0)
             {
-                CopyToFixedBytes(value, dataPtr, 128);
+                length = 128;
             }
+
+            return Encoding.UTF8.GetString(span.Slice(0, length));
         }
 
-        private static unsafe void CopyToFixedBytes(string source, byte* destination, int maxLength)
+        private void Set(string value)
         {
-            if (source == null)
+            var span = AsSpan();
+            span.Clear();
+
+            if (string.IsNullOrEmpty(value))
             {
-                destination[0] = 0;
                 return;
             }
 
-            var bytes = System.Text.Encoding.UTF8.GetBytes(source);
-            var bytesToCopy = Math.Min(bytes.Length, maxLength - 1);
-
-            for (int i = 0; i < bytesToCopy; i++)
-            {
-                destination[i] = bytes[i];
-            }
-
-            destination[bytesToCopy] = 0;
-        }
-
-        private static unsafe string GetStringFromFixedBytes(byte* source)
-        {
-            var byteLength = 0;
-            while (source[byteLength] != 0)
-            {
-                byteLength++;
-            }
-
-            return System.Text.Encoding.UTF8.GetString(source, byteLength);
+            var bytes = Encoding.UTF8.GetBytes(value);
+            var len = Math.Min(bytes.Length, 127);
+            bytes.AsSpan(0, len).CopyTo(span);
         }
 
         public static implicit operator FixedString(string value)
