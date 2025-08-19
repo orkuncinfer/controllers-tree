@@ -111,33 +111,41 @@ namespace Playtika.Controllers.Editor
             Rect rowRect)
         {
             const int columnIndex = 0;
-            if (multiColumnHeader.IsColumnVisible(columnIndex))
+            if (!multiColumnHeader.IsColumnVisible(columnIndex))
             {
-                var visibleColumnIndex = multiColumnHeader.GetVisibleColumnIndex(columnIndex);
-                var columnRect = multiColumnHeader.GetColumnRect(visibleColumnIndex);
-                columnRect.y = rowRect.y;
+                return;
+            }
 
-                args.rowRect = columnRect;
-                base.RowGUI(args);
-                var buttonRect = columnRect;
-                var center = buttonRect.center;
-                buttonRect.width = 40;
-                buttonRect.height -= 6;
-                center.x = args.rowRect.width - buttonRect.width / 2;
-                center.y -= 2;
-                buttonRect.center = center;
-                if (GUI.Button(buttonRect, "Pin", GUI.skin.button))
-                {
-                    _model.InvokeCreateNewTreeTab(viewItem.ControllerDebugInfo);
-                }
+            var visibleColumnIndex = multiColumnHeader.GetVisibleColumnIndex(columnIndex);
+            var columnRect = multiColumnHeader.GetColumnRect(visibleColumnIndex);
+            columnRect.y = rowRect.y;
 
-                center = buttonRect.center;
-                center.x = args.rowRect.width - buttonRect.width * 1.5f;
-                buttonRect.center = center;
-                if (GUI.Button(buttonRect, "Edit", GUI.skin.button))
-                {
-                    EditScript(args.item.id);
-                }
+            args.rowRect = columnRect;
+            base.RowGUI(args);
+
+            if (!IsSelected(args.item.id))
+            {
+                return;
+            }
+
+            var buttonRect = columnRect;
+            var center = buttonRect.center;
+            buttonRect.width = 40;
+            buttonRect.height -= 6;
+            center.x = args.rowRect.width - buttonRect.width / 2;
+            center.y -= 2;
+            buttonRect.center = center;
+            if (GUI.Button(buttonRect, "Pin", GUI.skin.button))
+            {
+                _model.InvokeCreateNewTreeTab(viewItem.ControllerDebugInfo);
+            }
+
+            center = buttonRect.center;
+            center.x = args.rowRect.width - buttonRect.width * 1.5f;
+            buttonRect.center = center;
+            if (GUI.Button(buttonRect, "Edit", GUI.skin.button))
+            {
+                EditScript(args.item.id);
             }
         }
 

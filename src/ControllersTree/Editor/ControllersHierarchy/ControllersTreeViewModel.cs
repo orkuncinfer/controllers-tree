@@ -47,6 +47,12 @@ namespace Playtika.Controllers.Editor
             }
             ToolbarStyle = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("Toolbar");
             CloseButtonStyle = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("WinBtnCloseMac");
+            if (CloseButtonStyle == null)
+            {
+                // Fallback options for Unity 6.0 and newer versions
+                CloseButtonStyle = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("WinBtnInactiveMac") ??
+                                   GUI.skin.button;
+            }
         }
 
         internal void InvokeCreateNewTreeTab(IControllerDebugInfo controller)
