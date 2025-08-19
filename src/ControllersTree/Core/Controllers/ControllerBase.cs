@@ -11,11 +11,23 @@ namespace Playtika.Controllers
         private readonly List<IController> _childControllers;
         private readonly ControllerCompositeDisposable _compositeDisposables = new ();
         private readonly IControllerFactory _controllerFactory;
+        private string _name;
         private CancellationToken _lifetimeToken;
         private CancellationTokenSource _lifetimeTokenSource;
         private ControllerState _state;
 
-        public string Name => GetType().Name;
+        public string Name
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_name))
+                {
+                    _name = GetType().Name;
+                }
+                return _name;
+            }
+        }
+
         protected CancellationToken CancellationToken => _lifetimeToken;
 
         CancellationToken IController.CancellationToken => _lifetimeToken;
